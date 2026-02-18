@@ -1,3 +1,3 @@
-from scripts.pokemon_extraction import save_pokemons_into_file
+from scripts.pokemon_extraction import save_pokemons_into_file, save_pokemon_to_raw
 
-save_pokemons_into_file(filetype="csv")
+save_pokemon_to_raw()

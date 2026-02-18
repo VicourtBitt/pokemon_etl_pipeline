@@ -1,4 +1,4 @@
-from scripts.utils.models.pokemon import PokemonData
+from scripts.utils.models.pokemon import PokemonInfo, PokemonJsonData
 from typing import List
 import requests
 import logging
@@ -13,7 +13,7 @@ _logger.setLevel(logging.INFO)
 _POKE_API_URL_ = os.getenv("POKE_API_URL")
 
 
-def extract_pokemon(poke_code: int = None) -> PokemonData:
+def extract_pokemon(poke_code: int = None) -> None | PokemonInfo:
     """
     This function acts as a helper to gather one specific Pokémon, although, there's no parameter diversity
     on this one, as the main goal is to extract all possible useful information about the pokemon, and not
@@ -33,11 +33,18 @@ def extract_pokemon(poke_code: int = None) -> PokemonData:
     
     response = requests.get(f"{_POKE_API_URL_}/{poke_code}")
     if response.status_code == 200:
-        data = response.json()
-        return PokemonData(**data)
+        poke_info = response.json()
+        return PokemonInfo(id=poke_info["id"],
+                           name=poke_info["name"],
+                           height=poke_info["height"],
+                           weight=poke_info["weight"],
+                           is_default = poke_info["is_default"],
+                           stats=poke_info["stats"],
+                           types=poke_info["types"],
+                           abilities=poke_info["abilities"])
 
 
-def extract_spec_gen(generation: list = None) -> None | List[PokemonData]:
+def extract_spec_gen(generation: list = None) -> None | PokemonJsonData:
     """
     This function receives a list that represents all the numbers between the start/end of a certain
     Pokémon generation in question, this makes easier for us to gather Pokémon's from a certain 
@@ -49,12 +56,11 @@ def extract_spec_gen(generation: list = None) -> None | List[PokemonData]:
     :return: A list that has all the relevant PokemonData from a certain generation 
     :rtype: List[PokemonData] | None
     """
-
     if not generation:
         _logger.error("No generation informed")
         raise ValueError("There should be a Pokémon Generation list to extract at least a Pokémon.")
     
-    pokemon_list: List[PokemonData] = []
+    pokemon_list: List[PokemonInfo] = []
     for num in generation:
         poke_data = extract_pokemon(poke_code=num)
         if not poke_data:
@@ -66,4 +72,4 @@ def extract_spec_gen(generation: list = None) -> None | List[PokemonData]:
         # print(msg_str)
         _logger.info(msg_str)
 
-    return pokemon_list
+    return PokemonJsonData(data=pokemon_list)
